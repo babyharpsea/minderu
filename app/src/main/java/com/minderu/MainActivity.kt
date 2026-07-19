@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -23,6 +24,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Park
 import androidx.compose.material.icons.outlined.PlayArrow
@@ -36,6 +38,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,18 +54,45 @@ import com.minderu.ui.theme.MinderuTheme
 
 private val rewardColor = Color(0xFFFFD8E4)
 
-private val sampleTasks = listOf(
-    Task("Put 3 clothes in your closet", 3, true),
-    Task("Drink a glass of water", 2, false),
-    Task("Clear one surface", 3, false),
-    Task("Open the window", 1, false),
-    Task("Write down one thought", 2, false)
+private val mockTasks = listOf(
+    Task(
+        id = "closet",
+        title = "Put 3 clothes in your closet",
+        subtitle = "One tiny step",
+        sparks = 3
+    ),
+    Task(
+        id = "water",
+        title = "Drink a glass of water",
+        subtitle = "One tiny step",
+        sparks = 2
+    ),
+    Task(
+        id = "surface",
+        title = "Clear one surface",
+        subtitle = "One tiny step",
+        sparks = 3
+    ),
+    Task(
+        id = "window",
+        title = "Open the window",
+        subtitle = "One tiny step",
+        sparks = 1
+    ),
+    Task(
+        id = "thought",
+        title = "Write down one thought",
+        subtitle = "One tiny step",
+        sparks = 2
+    )
 )
 
 data class Task(
+    val id: String,
     val title: String,
+    val subtitle: String,
     val sparks: Int,
-    val completed: Boolean
+    val isCompleted: Boolean = false
 )
 
 enum class MinderuDestination(val label: String, val icon: ImageVector) {
@@ -75,7 +106,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MinderuTheme {
-                MinderuApp(tasks = sampleTasks)
+                MinderuApp()
             }
         }
     }
@@ -83,11 +114,15 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MinderuApp(
-    tasks: List<Task>,
+    initialTasks: List<Task> = mockTasks,
     modifier: Modifier = Modifier
 ) {
+    val tasksState = remember { mutableStateOf(initialTasks) }
+
     Scaffold(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxSize()
+            .statusBarsPadding(),
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             FloatingNavDock(
@@ -97,8 +132,17 @@ fun MinderuApp(
         }
     ) { innerPadding ->
         TodayTasksScreen(
-            tasks = tasks,
-            contentPadding = innerPadding
+            tasks = tasksState.value,
+            contentPadding = innerPadding,
+            onTaskCompleted = { task ->
+                tasksState.value = tasksState.value.map { currentTask ->
+                    if (currentTask.id == task.id) {
+                        currentTask.copy(isCompleted = !currentTask.isCompleted)
+                    } else {
+                        currentTask
+                    }
+                }
+            }
         )
     }
 }
@@ -107,6 +151,7 @@ fun MinderuApp(
 fun TodayTasksScreen(
     tasks: List<Task>,
     contentPadding: PaddingValues,
+    onTaskCompleted: (Task) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -146,8 +191,8 @@ fun TodayTasksScreen(
                 )
             }
         }
-        items(tasks, key = { it.title }) { task ->
-            TaskCard(task = task, onClick = {})
+        items(tasks, key = { it.id }) { task ->
+            TaskCard(task = task, onTaskCompleted = onTaskCompleted)
         }
     }
 }
@@ -155,11 +200,11 @@ fun TodayTasksScreen(
 @Composable
 fun TaskCard(
     task: Task,
-    onClick: () -> Unit,
+    onTaskCompleted: (Task) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
-        onClick = onClick,
+        onClick = { onTaskCompleted(task) },
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface,
@@ -178,8 +223,8 @@ fun TaskCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             TaskPlayButton(
-                completed = task.completed,
-                onClick = onClick
+                completed = task.isCompleted,
+                onClick = { onTaskCompleted(task) }
             )
             Column(
                 modifier = Modifier.weight(1f),
@@ -192,7 +237,7 @@ fun TaskCard(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = if (task.completed) "Nice work" else "One tiny step",
+                    text = if (task.isCompleted) "Nice work" else task.subtitle,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -212,13 +257,17 @@ private fun TaskPlayButton(
         modifier = Modifier
             .size(56.dp)
             .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.primaryContainer)
+            .background(
+                if (completed) MaterialTheme.colorScheme.secondaryContainer
+                else MaterialTheme.colorScheme.primaryContainer
+            )
     ) {
         Icon(
             imageVector = if (completed) Icons.Outlined.Check else Icons.Outlined.PlayArrow,
             contentDescription = if (completed) "Completed task" else "Start task",
             modifier = Modifier.size(30.dp),
-            tint = MaterialTheme.colorScheme.onPrimaryContainer
+            tint = if (completed) MaterialTheme.colorScheme.onSecondaryContainer
+            else MaterialTheme.colorScheme.onPrimaryContainer
         )
     }
 }
@@ -291,8 +340,8 @@ fun FloatingNavDock(
                     contentColor = MaterialTheme.colorScheme.onTertiaryContainer
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.PlayArrow,
-                        contentDescription = "Add task"
+                        imageVector = Icons.Outlined.Edit,
+                        contentDescription = "Edit tasks"
                     )
                 }
             }
@@ -330,6 +379,6 @@ private fun NavigationDockItem(
 @Composable
 private fun MinderuPreview() {
     MinderuTheme {
-        MinderuApp(tasks = sampleTasks)
+        MinderuApp()
     }
 }
