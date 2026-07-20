@@ -22,7 +22,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -30,6 +30,7 @@ import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Park
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Style
@@ -128,11 +129,25 @@ data class BinderCard(
     val illustration: ImageVector
 )
 
+data class Planting(
+    val id: String,
+    val species: String,
+    val location: String,
+    val date: String
+)
+
 enum class CardRarity {
     Common,
     Rare,
     Epic
 }
+
+private val mockPlantings = listOf(
+    Planting("mangrove-madagascar", "Mangrove", "Madagascar", "July 20"),
+    Planting("oak-california", "Coast Live Oak", "California", "July 12"),
+    Planting("cedar-lebanon", "Cedar", "Lebanon", "June 28"),
+    Planting("baobab-kenya", "Baobab", "Kenya", "June 14")
+)
 
 enum class MinderuDestination(val label: String, val icon: ImageVector) {
     Dashboard("Dashboard", Icons.Outlined.Home),
@@ -177,8 +192,12 @@ fun MinderuApp(
                 sparksBalance = 350,
                 contentPadding = innerPadding
             )
-            MinderuDestination.Dashboard,
-            MinderuDestination.Impact -> TodayTasksScreen(
+            MinderuDestination.Impact -> ImpactTrackerScreen(
+                treesPlanted = 12,
+                plantings = mockPlantings,
+                contentPadding = innerPadding
+            )
+            MinderuDestination.Dashboard -> TodayTasksScreen(
                 tasks = tasksState.value,
                 contentPadding = innerPadding,
                 onTaskCompleted = { task ->
@@ -445,7 +464,7 @@ fun CardBinderScreen(
         item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
             BinderHeader(sparksBalance = sparksBalance)
         }
-        items(cards, key = { it.id }) { card ->
+        gridItems(cards, key = { it.id }) { card ->
             CollectibleCard(card = card)
         }
     }
@@ -543,6 +562,148 @@ private fun CollectibleCard(
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun ImpactTrackerScreen(
+    treesPlanted: Int,
+    plantings: List<Planting>,
+    contentPadding: PaddingValues,
+    modifier: Modifier = Modifier
+) {
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(
+            start = 24.dp,
+            top = 28.dp,
+            end = 24.dp,
+            bottom = contentPadding.calculateBottomPadding() + 24.dp
+        ),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        item {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Your Forest",
+                    style = MaterialTheme.typography.displaySmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = "Real-world impact",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        item {
+            ForestMetric(treesPlanted = treesPlanted)
+        }
+        item {
+            Text(
+                text = "Recent Plantings",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
+        items(plantings, key = { it.id }) { planting ->
+            TreeReceipt(planting = planting)
+        }
+    }
+}
+
+@Composable
+private fun ForestMetric(
+    treesPlanted: Int,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.primaryContainer,
+        tonalElevation = 2.dp
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 22.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Park,
+                contentDescription = "Trees planted",
+                modifier = Modifier.size(56.dp),
+                tint = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            Spacer(Modifier.width(16.dp))
+            Column {
+                Text(
+                    text = treesPlanted.toString(),
+                    style = MaterialTheme.typography.displaySmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    text = "Trees Planted",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TreeReceipt(
+    planting: Planting,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = androidx.compose.foundation.BorderStroke(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outlineVariant
+        )
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.secondaryContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.LocationOn,
+                    contentDescription = "Planting location",
+                    modifier = Modifier.size(22.dp),
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
+            Text(
+                text = "${planting.species} • ${planting.location}",
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = planting.date,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
