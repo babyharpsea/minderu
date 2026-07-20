@@ -10,6 +10,7 @@ import androidx.compose.material.icons.outlined.Style
 import androidx.compose.material.icons.outlined.Token
 import androidx.compose.material.icons.outlined.WaterDrop
 import androidx.compose.material.icons.outlined.WbSunny
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
@@ -21,7 +22,27 @@ sealed class Screen(val route: String) {
     object Impact : Screen("impact")
 }
 
-// --- Data Models ---
+// --- Data Models (DTOs) ---
+
+@Serializable
+data class RoutineDto(
+    val id: String,
+    @SerialName("user_id") val userId: String,
+    val title: String,
+    @SerialName("is_active") val isActive: Boolean
+)
+
+@Serializable
+data class TaskDto(
+    val id: String,
+    @SerialName("routine_id") val routineId: String,
+    @SerialName("position_index") val positionIndex: Int,
+    val title: String,
+    val subhead: String,
+    @SerialName("sparks_reward") val sparksReward: Int
+)
+
+// --- UI Models ---
 
 @Serializable
 data class Task(

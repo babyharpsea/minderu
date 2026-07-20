@@ -23,22 +23,35 @@ import com.minderu.data.Screen
 import com.minderu.data.Task
 import com.minderu.data.mockBinderCards
 import com.minderu.data.mockPlantings
-import com.minderu.data.mockTasks
 import com.minderu.ui.components.AddTaskBottomSheet
 import com.minderu.ui.components.FloatingNavDock
 import com.minderu.ui.screens.CardBinderScreen
 import com.minderu.ui.screens.ImpactTrackerScreen
 import com.minderu.ui.screens.TodayTasksScreen
 import com.minderu.ui.theme.MinderuTheme
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.analytics
+import com.google.android.gms.ads.MobileAds
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.util.UUID
 
 class MainActivity : ComponentActivity() {
+    private lateinit var firebaseAnalytics: FirebaseAnalytics
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         firebaseAnalytics = Firebase.analytics
+
+        CoroutineScope(Dispatchers.IO).launch {
+            MobileAds.initialize(this@MainActivity) {}
+        }
+
         setContent {
             MinderuTheme {
-                MinderuApp(firebaseAnalytics = firebaseAnalytics)
+                MinderuApp()
             }
         }
     }
@@ -46,13 +59,9 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MinderuApp(
-    initialTasks: List<Task> = mockTasks,
-    modifier: Modifier = Modifier,
-    firebaseAnalytics: FirebaseAnalytics? = null
+    modifier: Modifier = Modifier
 ) {
     val navController = rememberNavController()
-    val tasksState = remember { mutableStateOf(initialTasks) }
-    
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
@@ -87,28 +96,7 @@ fun MinderuApp(
         ) {
             composable(Screen.Dashboard.route) {
                 TodayTasksScreen(
-                    tasks = tasksState.value,
-                    contentPadding = innerPadding,
-                    onTaskCompleted = { task ->
-                        firebaseAnalytics?.logEvent("task_completed") {
-                            param("task_id", task.id)
-                            param("task_title", task.title)
-                        }
-                        tasksState.value = tasksState.value.map { currentTask ->
-                            if (currentTask.id == task.id) {
-                                currentTask.copy(isCompleted = !currentTask.isCompleted)
-                            } else {
-                                currentTask
-                            }
-                        }
-                    },
-                    onTaskDeleted = { task ->
-                        firebaseAnalytics?.logEvent("task_deleted") {
-                            param("task_id", task.id)
-                            param("task_title", task.title)
-                        }
-                        tasksState.value = tasksState.value.filter { it.id != task.id }
-                    }
+                    contentPadding = innerPadding
                 )
             }
             composable(Screen.Binder.route) {
@@ -131,13 +119,8 @@ fun MinderuApp(
             AddTaskBottomSheet(
                 onDismissRequest = { showBottomSheet = false },
                 onAddTask = { title, sparks ->
-                    val newTask = Task(
-                        id = UUID.randomUUID().toString(),
-                        title = title,
-                        subtitle = "One tiny step",
-                        sparks = sparks
-                    )
-                    tasksState.value = listOf(newTask) + tasksState.value
+                    // Persistence should be handled in a ViewModel or the screen itself
+                    // For now, we are refactoring screens to fetch from DB
                     showBottomSheet = false
                 }
             )

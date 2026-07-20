@@ -29,10 +29,83 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.AdLoader
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.nativead.NativeAd
+import com.google.android.gms.ads.nativead.NativeAdView
 import com.minderu.data.Task
 import com.minderu.data.rewardColor
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.DisposableEffect
+
+@Composable
+fun NativeAdItem(adId: String, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val nativeAd = remember { mutableStateOf<NativeAd?>(null) }
+
+    DisposableEffect(Unit) {
+        val adLoader = AdLoader.Builder(context, adId)
+            .forNativeAd { ad ->
+                nativeAd.value = ad
+            }
+            .withAdListener(object : AdListener() {
+                // Optional: handle failures
+            })
+            .build()
+        adLoader.loadAd(AdRequest.Builder().build())
+        
+        onDispose {
+            nativeAd.value?.destroy()
+        }
+    }
+
+    nativeAd.value?.let { ad ->
+        Surface(
+            modifier = modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+            border = androidx.compose.foundation.BorderStroke(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
+        ) {
+            AndroidView(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                factory = { ctx ->
+                    NativeAdView(ctx).apply {
+                        // In a real implementation, you'd inflate a XML layout here
+                        // For a quick test, we just show that it's loaded
+                    }
+                },
+                update = { view ->
+                    // Set the ad to the view
+                }
+            )
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "Sponsor: ${ad.headline}",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                ad.body?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+    }
+}
 
 @Composable
 fun TaskCard(

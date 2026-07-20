@@ -3,6 +3,7 @@ package com.minderu.data
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.auth.Auth
+import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.realtime.Realtime
 
 object SupabaseConfig {
@@ -17,4 +18,15 @@ val supabase = createSupabaseClient(
     install(Postgrest)
     install(Auth)
     install(Realtime)
+}
+
+object SupabaseProvider {
+    val client = supabase
+
+    suspend fun ensureAuthenticated() {
+        val session = client.auth.currentSessionOrNull()
+        if (session == null) {
+            client.auth.signInAnonymously()
+        }
+    }
 }

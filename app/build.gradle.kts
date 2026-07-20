@@ -63,4 +63,7 @@ dependencies {
     // Firebase
     implementation(platform("com.google.firebase:firebase-bom:34.16.0"))
     implementation("com.google.firebase:firebase-analytics")
+
+    // AdMob
+    implementation("com.google.android.gms:play-services-ads:25.4.0")
 }
