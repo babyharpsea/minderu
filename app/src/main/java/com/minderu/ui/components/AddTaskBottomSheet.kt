@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -15,7 +14,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.minderu.data.TaskUiModel
 
 private val CoralAccent = Color(0xFFFF5252)
 
@@ -34,10 +33,17 @@ private val CoralAccent = Color(0xFFFF5252)
 @Composable
 fun AddTaskBottomSheet(
     onDismissRequest: () -> Unit,
-    onAddTask: (String, Int) -> Unit
+    taskToEdit: TaskUiModel? = null,
+    onSubmit: (title: String, subhead: String, sparks: Int, taskId: String?) -> Unit
 ) {
-    var taskTitle by remember { mutableStateOf("") }
-    var sparksReward by remember { mutableStateOf("2") }
+    val isEdit = taskToEdit != null
+    var taskTitle by remember(taskToEdit) { mutableStateOf(taskToEdit?.title ?: "") }
+    var subhead by remember(taskToEdit) {
+        mutableStateOf(taskToEdit?.subtitle ?: "One tiny step")
+    }
+    var sparksReward by remember(taskToEdit) {
+        mutableStateOf((taskToEdit?.sparks ?: 2).toString())
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
@@ -52,16 +58,25 @@ fun AddTaskBottomSheet(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "New Micro-task",
+                text = if (isEdit) "Edit micro-task" else "New Micro-task",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
-            
+
             OutlinedTextField(
                 value = taskTitle,
                 onValueChange = { taskTitle = it },
                 label = { Text("What needs doing?") },
                 placeholder = { Text("e.g., Clear one surface") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp)
+            )
+
+            OutlinedTextField(
+                value = subhead,
+                onValueChange = { subhead = it },
+                label = { Text("Subhead") },
+                placeholder = { Text("One tiny step") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp)
             )
@@ -77,11 +92,16 @@ fun AddTaskBottomSheet(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(16.dp)
                 )
-                
+
                 Button(
                     onClick = {
                         if (taskTitle.isNotBlank()) {
-                            onAddTask(taskTitle, sparksReward.toIntOrNull() ?: 2)
+                            onSubmit(
+                                taskTitle.trim(),
+                                subhead.trim().ifBlank { "One tiny step" },
+                                sparksReward.toIntOrNull()?.coerceAtLeast(0) ?: 2,
+                                taskToEdit?.id
+                            )
                         }
                     },
                     modifier = Modifier
@@ -94,7 +114,7 @@ fun AddTaskBottomSheet(
                     )
                 ) {
                     Text(
-                        text = "Create Task",
+                        text = if (isEdit) "Save changes" else "Create Task",
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     )

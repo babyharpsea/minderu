@@ -38,7 +38,7 @@ import com.google.android.gms.ads.AdLoader
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdView
-import com.minderu.data.Task
+import com.minderu.data.TaskUiModel
 import com.minderu.data.rewardColor
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -109,13 +109,15 @@ fun NativeAdItem(adId: String, modifier: Modifier = Modifier) {
 
 @Composable
 fun TaskCard(
-    task: Task,
-    onTaskCompleted: (Task) -> Unit,
-    onTaskDeleted: (Task) -> Unit,
+    task: TaskUiModel,
+    onTaskCompleted: (TaskUiModel) -> Unit,
+    onTaskDeleted: (TaskUiModel) -> Unit,
+    onTaskEdit: (TaskUiModel) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Surface(
         onClick = { onTaskCompleted(task) },
+        onLongClick = { onTaskEdit(task) },
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface,
