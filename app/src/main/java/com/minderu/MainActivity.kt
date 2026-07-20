@@ -3,164 +3,42 @@ package com.minderu
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items as gridItems
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material.icons.outlined.Park
-import androidx.compose.material.icons.outlined.PlayArrow
-import androidx.compose.material.icons.outlined.Style
-import androidx.compose.material.icons.outlined.Token
-import androidx.compose.material.icons.outlined.WaterDrop
-import androidx.compose.material.icons.outlined.WbSunny
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.minderu.data.MinderuDestination
+import com.minderu.data.Screen
+import com.minderu.data.Task
+import com.minderu.data.mockBinderCards
+import com.minderu.data.mockPlantings
+import com.minderu.data.mockTasks
+import com.minderu.ui.components.AddTaskBottomSheet
+import com.minderu.ui.components.FloatingNavDock
+import com.minderu.ui.screens.CardBinderScreen
+import com.minderu.ui.screens.ImpactTrackerScreen
+import com.minderu.ui.screens.TodayTasksScreen
 import com.minderu.ui.theme.MinderuTheme
-import kotlin.math.absoluteValue
-
-private val rewardColor = Color(0xFFFFD8E4)
-private val binderIllustrationColors = listOf(
-    Color(0xFFE8DEF8),
-    Color(0xFFFFD8E4),
-    Color(0xFFD9EAD3),
-    Color(0xFFFFE0B2),
-    Color(0xFFD7E3FC),
-    Color(0xFFF5D0FE)
-)
-
-private val mockBinderCards = listOf(
-    BinderCard("rooty", "Compañero Rooty", CardRarity.Common, Icons.Outlined.Park),
-    BinderCard("focus", "Focus Sprout", CardRarity.Rare, Icons.Outlined.AutoAwesome),
-    BinderCard("calm", "Calm Current", CardRarity.Common, Icons.Outlined.WaterDrop),
-    BinderCard("sunbeam", "Sunbeam Buddy", CardRarity.Epic, Icons.Outlined.WbSunny),
-    BinderCard("nest", "Tiny Nest", CardRarity.Common, Icons.Outlined.Home),
-    BinderCard("spark", "Spark Keeper", CardRarity.Rare, Icons.Outlined.Token)
-)
-
-private val mockTasks = listOf(
-    Task(
-        id = "closet",
-        title = "Put 3 clothes in your closet",
-        subtitle = "One tiny step",
-        sparks = 3
-    ),
-    Task(
-        id = "water",
-        title = "Drink a glass of water",
-        subtitle = "One tiny step",
-        sparks = 2
-    ),
-    Task(
-        id = "surface",
-        title = "Clear one surface",
-        subtitle = "One tiny step",
-        sparks = 3
-    ),
-    Task(
-        id = "window",
-        title = "Open the window",
-        subtitle = "One tiny step",
-        sparks = 1
-    ),
-    Task(
-        id = "thought",
-        title = "Write down one thought",
-        subtitle = "One tiny step",
-        sparks = 2
-    )
-)
-
-data class Task(
-    val id: String,
-    val title: String,
-    val subtitle: String,
-    val sparks: Int,
-    val isCompleted: Boolean = false
-)
-
-data class BinderCard(
-    val id: String,
-    val title: String,
-    val rarity: CardRarity,
-    val illustration: ImageVector
-)
-
-data class Planting(
-    val id: String,
-    val species: String,
-    val location: String,
-    val date: String
-)
-
-enum class CardRarity {
-    Common,
-    Rare,
-    Epic
-}
-
-private val mockPlantings = listOf(
-    Planting("mangrove-madagascar", "Mangrove", "Madagascar", "July 20"),
-    Planting("oak-california", "Coast Live Oak", "California", "July 12"),
-    Planting("cedar-lebanon", "Cedar", "Lebanon", "June 28"),
-    Planting("baobab-kenya", "Baobab", "Kenya", "June 14")
-)
-
-enum class MinderuDestination(val label: String, val icon: ImageVector) {
-    Dashboard("Dashboard", Icons.Outlined.Home),
-    Binder("Card binder", Icons.Outlined.Style),
-    Impact("Impact", Icons.Outlined.Park)
-}
+import java.util.UUID
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        firebaseAnalytics = Firebase.analytics
         setContent {
             MinderuTheme {
-                MinderuApp()
+                MinderuApp(firebaseAnalytics = firebaseAnalytics)
             }
         }
     }
@@ -169,10 +47,17 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MinderuApp(
     initialTasks: List<Task> = mockTasks,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    firebaseAnalytics: FirebaseAnalytics? = null
 ) {
+    val navController = rememberNavController()
     val tasksState = remember { mutableStateOf(initialTasks) }
-    val selectedDestination = remember { mutableStateOf(MinderuDestination.Dashboard) }
+    
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    // Task Creation State
+    var showBottomSheet by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = modifier
@@ -181,528 +66,80 @@ fun MinderuApp(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             FloatingNavDock(
-                selectedDestination = selectedDestination.value,
-                onDestinationSelected = { selectedDestination.value = it }
+                selectedDestination = MinderuDestination.entries.find { it.screen.route == currentRoute }
+                    ?: MinderuDestination.Dashboard,
+                onDestinationSelected = { destination ->
+                    navController.navigate(destination.screen.route) {
+                        popUpTo(navController.graph.startDestinationId) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                onFabClick = { showBottomSheet = true }
             )
         }
     ) { innerPadding ->
-        when (selectedDestination.value) {
-            MinderuDestination.Binder -> CardBinderScreen(
-                cards = mockBinderCards,
-                sparksBalance = 350,
-                contentPadding = innerPadding
-            )
-            MinderuDestination.Impact -> ImpactTrackerScreen(
-                treesPlanted = 12,
-                plantings = mockPlantings,
-                contentPadding = innerPadding
-            )
-            MinderuDestination.Dashboard -> TodayTasksScreen(
-                tasks = tasksState.value,
-                contentPadding = innerPadding,
-                onTaskCompleted = { task ->
-                    tasksState.value = tasksState.value.map { currentTask ->
-                        if (currentTask.id == task.id) {
-                            currentTask.copy(isCompleted = !currentTask.isCompleted)
-                        } else {
-                            currentTask
+        NavHost(
+            navController = navController,
+            startDestination = Screen.Dashboard.route
+        ) {
+            composable(Screen.Dashboard.route) {
+                TodayTasksScreen(
+                    tasks = tasksState.value,
+                    contentPadding = innerPadding,
+                    onTaskCompleted = { task ->
+                        firebaseAnalytics?.logEvent("task_completed") {
+                            param("task_id", task.id)
+                            param("task_title", task.title)
                         }
+                        tasksState.value = tasksState.value.map { currentTask ->
+                            if (currentTask.id == task.id) {
+                                currentTask.copy(isCompleted = !currentTask.isCompleted)
+                            } else {
+                                currentTask
+                            }
+                        }
+                    },
+                    onTaskDeleted = { task ->
+                        firebaseAnalytics?.logEvent("task_deleted") {
+                            param("task_id", task.id)
+                            param("task_title", task.title)
+                        }
+                        tasksState.value = tasksState.value.filter { it.id != task.id }
                     }
-                }
-            )
-        }
-    }
-}
-
-@Composable
-fun TodayTasksScreen(
-    tasks: List<Task>,
-    contentPadding: PaddingValues,
-    onTaskCompleted: (Task) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            start = 24.dp,
-            top = 32.dp,
-            end = 24.dp,
-            bottom = contentPadding.calculateBottomPadding() + 24.dp
-        ),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        item {
-            Column {
-                Text(
-                    text = "Minderu",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onBackground
                 )
-                Spacer(Modifier.height(28.dp))
-                Text(
-                    text = "Today’s tasks",
-                    style = MaterialTheme.typography.displaySmall.copy(
-                        fontSize = 40.sp,
-                        fontStyle = FontStyle.Italic,
-                        fontWeight = FontWeight.Thin,
-                        lineHeight = 44.sp
-                    ),
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
+            }
+            composable(Screen.Binder.route) {
+                CardBinderScreen(
+                    cards = mockBinderCards,
+                    sparksBalance = 350,
+                    contentPadding = innerPadding
                 )
-                Spacer(Modifier.height(12.dp))
-                Text(
-                    text = "Small steps make a real difference.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+            }
+            composable(Screen.Impact.route) {
+                ImpactTrackerScreen(
+                    treesPlanted = 12,
+                    plantings = mockPlantings,
+                    contentPadding = innerPadding
                 )
             }
         }
-        items(tasks, key = { it.id }) { task ->
-            TaskCard(task = task, onTaskCompleted = onTaskCompleted)
-        }
-    }
-}
 
-@Composable
-fun TaskCard(
-    task: Task,
-    onTaskCompleted: (Task) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Surface(
-        onClick = { onTaskCompleted(task) },
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 1.dp,
-        shadowElevation = 1.dp,
-        border = androidx.compose.foundation.BorderStroke(
-            width = 1.dp,
-            color = MaterialTheme.colorScheme.outlineVariant
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            TaskPlayButton(
-                completed = task.isCompleted,
-                onClick = { onTaskCompleted(task) }
-            )
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = task.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = if (task.isCompleted) "Nice work" else task.subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            RewardBadge(sparks = task.sparks)
-        }
-    }
-}
-
-@Composable
-private fun TaskPlayButton(
-    completed: Boolean,
-    onClick: () -> Unit
-) {
-    IconButton(
-        onClick = onClick,
-        modifier = Modifier
-            .size(56.dp)
-            .clip(CircleShape)
-            .background(
-                if (completed) MaterialTheme.colorScheme.secondaryContainer
-                else MaterialTheme.colorScheme.primaryContainer
-            )
-    ) {
-        Icon(
-            imageVector = if (completed) Icons.Outlined.Check else Icons.Outlined.PlayArrow,
-            contentDescription = if (completed) "Completed task" else "Start task",
-            modifier = Modifier.size(30.dp),
-            tint = if (completed) MaterialTheme.colorScheme.onSecondaryContainer
-            else MaterialTheme.colorScheme.onPrimaryContainer
-        )
-    }
-}
-
-@Composable
-private fun RewardBadge(
-    sparks: Int,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
-            .background(rewardColor)
-            .padding(horizontal = 10.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.Token,
-            contentDescription = "Sparks reward",
-            modifier = Modifier.size(18.dp),
-            tint = MaterialTheme.colorScheme.onTertiaryContainer
-        )
-        Text(
-            text = "+$sparks",
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onTertiaryContainer
-        )
-    }
-}
-
-@Composable
-fun FloatingNavDock(
-    selectedDestination: MinderuDestination,
-    onDestinationSelected: (MinderuDestination) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(horizontal = 24.dp, vertical = 16.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Surface(
-            shape = RoundedCornerShape(28.dp),
-            color = MaterialTheme.colorScheme.surfaceContainer,
-            shadowElevation = 8.dp,
-            tonalElevation = 3.dp
-        ) {
-            Row(
-                modifier = Modifier.padding(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                MinderuDestination.entries.forEach { destination ->
-                    NavigationDockItem(
-                        destination = destination,
-                        selected = destination == selectedDestination,
-                        onClick = { onDestinationSelected(destination) }
+        if (showBottomSheet) {
+            AddTaskBottomSheet(
+                onDismissRequest = { showBottomSheet = false },
+                onAddTask = { title, sparks ->
+                    val newTask = Task(
+                        id = UUID.randomUUID().toString(),
+                        title = title,
+                        subtitle = "One tiny step",
+                        sparks = sparks
                     )
+                    tasksState.value = listOf(newTask) + tasksState.value
+                    showBottomSheet = false
                 }
-                Spacer(Modifier.width(4.dp))
-                FloatingActionButton(
-                    onClick = {},
-                    modifier = Modifier.size(56.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Edit,
-                        contentDescription = "Edit tasks"
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun NavigationDockItem(
-    destination: MinderuDestination,
-    selected: Boolean,
-    onClick: () -> Unit
-) {
-    IconButton(
-        onClick = onClick,
-        modifier = Modifier
-            .size(48.dp)
-            .clip(CircleShape)
-            .then(
-                if (selected) Modifier.background(MaterialTheme.colorScheme.secondaryContainer)
-                else Modifier
-            )
-    ) {
-        Icon(
-            imageVector = destination.icon,
-            contentDescription = destination.label,
-            modifier = Modifier.size(24.dp),
-            tint = if (selected) MaterialTheme.colorScheme.onSecondaryContainer
-            else MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-@Composable
-fun CardBinderScreen(
-    cards: List<BinderCard>,
-    sparksBalance: Int,
-    contentPadding: PaddingValues,
-    modifier: Modifier = Modifier
-) {
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(minSize = 140.dp),
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            start = 24.dp,
-            top = 32.dp,
-            end = 24.dp,
-            bottom = contentPadding.calculateBottomPadding() + 24.dp
-        ),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
-            BinderHeader(sparksBalance = sparksBalance)
-        }
-        gridItems(cards, key = { it.id }) { card ->
-            CollectibleCard(card = card)
-        }
-    }
-}
-
-@Composable
-private fun BinderHeader(
-    sparksBalance: Int,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(bottom = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "Your Binder",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
-        )
-        Row(
-            modifier = Modifier
-                .clip(RoundedCornerShape(50))
-                .background(MaterialTheme.colorScheme.secondaryContainer)
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Token,
-                contentDescription = "Sparks",
-                modifier = Modifier.size(18.dp),
-                tint = MaterialTheme.colorScheme.onSecondaryContainer
-            )
-            Text(
-                text = sparksBalance.toString(),
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSecondaryContainer
-            )
-        }
-    }
-}
-
-@Composable
-private fun CollectibleCard(
-    card: BinderCard,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(148.dp)
-                    .background(
-                        binderIllustrationColors[
-                            card.id.hashCode().absoluteValue % binderIllustrationColors.size
-                        ]
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = card.illustration,
-                    contentDescription = null,
-                    modifier = Modifier.size(64.dp),
-                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                )
-            }
-            Column(
-                modifier = Modifier.padding(14.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Text(
-                    text = card.title,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = card.rarity.name,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(50))
-                        .background(MaterialTheme.colorScheme.secondaryContainer)
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun ImpactTrackerScreen(
-    treesPlanted: Int,
-    plantings: List<Planting>,
-    contentPadding: PaddingValues,
-    modifier: Modifier = Modifier
-) {
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            start = 24.dp,
-            top = 28.dp,
-            end = 24.dp,
-            bottom = contentPadding.calculateBottomPadding() + 24.dp
-        ),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        item {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "Your Forest",
-                    style = MaterialTheme.typography.displaySmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    text = "Real-world impact",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-        item {
-            ForestMetric(treesPlanted = treesPlanted)
-        }
-        item {
-            Text(
-                text = "Recent Plantings",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-        }
-        items(plantings, key = { it.id }) { planting ->
-            TreeReceipt(planting = planting)
-        }
-    }
-}
-
-@Composable
-private fun ForestMetric(
-    treesPlanted: Int,
-    modifier: Modifier = Modifier
-) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.primaryContainer,
-        tonalElevation = 2.dp
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 22.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Park,
-                contentDescription = "Trees planted",
-                modifier = Modifier.size(56.dp),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-            Spacer(Modifier.width(16.dp))
-            Column {
-                Text(
-                    text = treesPlanted.toString(),
-                    style = MaterialTheme.typography.displaySmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-                Text(
-                    text = "Trees Planted",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun TreeReceipt(
-    planting: Planting,
-    modifier: Modifier = Modifier
-) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surface,
-        border = androidx.compose.foundation.BorderStroke(
-            width = 1.dp,
-            color = MaterialTheme.colorScheme.outlineVariant
-        )
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.secondaryContainer),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.LocationOn,
-                    contentDescription = "Planting location",
-                    modifier = Modifier.size(22.dp),
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-            }
-            Text(
-                text = "${planting.species} • ${planting.location}",
-                modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = planting.date,
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

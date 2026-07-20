@@ -2,11 +2,13 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
+    id("org.jetbrains.kotlin.plugin.serialization")
+    id("com.google.gms.google-services")
 }
 
 android {
     namespace = "com.minderu"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.minderu"
@@ -41,4 +43,24 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
     debugImplementation("androidx.compose.ui:ui-tooling")
+
+    // Navigation
+    implementation("androidx.navigation:navigation-compose:2.8.2")
+
+    // Supabase
+    implementation("io.github.jan-tennert.supabase:postgrest-kt:3.0.0")
+    implementation("io.github.jan-tennert.supabase:auth-kt:3.0.0")
+    implementation("io.github.jan-tennert.supabase:realtime-kt:3.0.0")
+    implementation("io.github.jan-tennert.supabase:compose-auth:3.0.0")
+    implementation("io.github.jan-tennert.supabase:compose-auth-ui:3.0.0")
+
+    // Serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+
+    // Ktor (Required by Supabase)
+    implementation("io.ktor:ktor-client-android:3.0.0")
+
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:34.16.0"))
+    implementation("com.google.firebase:firebase-analytics")
 }
