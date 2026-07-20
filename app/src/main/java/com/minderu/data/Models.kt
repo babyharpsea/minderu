@@ -17,12 +17,20 @@ import kotlinx.serialization.Transient
 // --- Navigation ---
 
 sealed class Screen(val route: String) {
+    object Auth : Screen("auth")
     object Dashboard : Screen("dashboard")
     object Binder : Screen("binder")
     object Impact : Screen("impact")
 }
 
-// --- Data Models (DTOs) ---
+// --- Remote DTOs (1:1 with PostgreSQL) ---
+
+@Serializable
+data class ProfileDto(
+    val id: String,
+    val sparks: Int,
+    @SerialName("is_premium") val isPremium: Boolean
+)
 
 @Serializable
 data class RoutineDto(
@@ -42,13 +50,12 @@ data class TaskDto(
     @SerialName("sparks_reward") val sparksReward: Int
 )
 
-// --- UI Models ---
+// --- UI Presentation Models ---
 
-@Serializable
-data class Task(
+data class TaskUiModel(
     val id: String,
     val title: String,
-    val subtitle: String,
+    val subhead: String,
     val sparks: Int,
     val isCompleted: Boolean = false
 )
@@ -103,39 +110,6 @@ val mockBinderCards = listOf(
     BinderCard("sunbeam", "Sunbeam Buddy", CardRarity.Epic, Icons.Outlined.WbSunny),
     BinderCard("nest", "Tiny Nest", CardRarity.Common, Icons.Outlined.Home),
     BinderCard("spark", "Spark Keeper", CardRarity.Rare, Icons.Outlined.Token)
-)
-
-val mockTasks = listOf(
-    Task(
-        id = "closet",
-        title = "Put 3 clothes in your closet",
-        subtitle = "One tiny step",
-        sparks = 3
-    ),
-    Task(
-        id = "water",
-        title = "Drink a glass of water",
-        subtitle = "One tiny step",
-        sparks = 2
-    ),
-    Task(
-        id = "surface",
-        title = "Clear one surface",
-        subtitle = "One tiny step",
-        sparks = 3
-    ),
-    Task(
-        id = "window",
-        title = "Open the window",
-        subtitle = "One tiny step",
-        sparks = 1
-    ),
-    Task(
-        id = "thought",
-        title = "Write down one thought",
-        subtitle = "One tiny step",
-        sparks = 2
-    )
 )
 
 val mockPlantings = listOf(

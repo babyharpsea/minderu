@@ -47,6 +47,10 @@ dependencies {
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.8.2")
 
+    // Lifecycle + ViewModel
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.6")
+
     // Supabase
     implementation("io.github.jan-tennert.supabase:postgrest-kt:3.0.0")
     implementation("io.github.jan-tennert.supabase:auth-kt:3.0.0")

@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="Gradle: io.github.jan-tennert.supabase:compose-auth-ui-android-debug:3.0.0@aar" external-system-id="GRADLE">
+    <CLASSES>
+      <root url="file://$USER_HOME$/.gradle/caches/9.4.1/transforms/b40ada862e2d6ee69bb8713de11ae3c5/transformed/compose-auth-ui-debug/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/9.4.1/transforms/b40ada862e2d6ee69bb8713de11ae3c5/transformed/compose-auth-ui-debug/jars/classes.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.github.jan-tennert.supabase/compose-auth-ui-android-debug/3.0.0/c2ff0f3490371953ff3326a59fde1634ee8ef57/compose-auth-ui-android-debug-3.0.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

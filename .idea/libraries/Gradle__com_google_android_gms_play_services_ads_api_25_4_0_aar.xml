@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: com.google.android.gms:play-services-ads-api:25.4.0@aar" external-system-id="GRADLE">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/9.4.1/transforms/b2405a9e958c328a70ed830ec167ee3b/transformed/play-services-ads-api-25.4.0/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/9.4.1/transforms/b2405a9e958c328a70ed830ec167ee3b/transformed/play-services-ads-api-25.4.0/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/9.4.1/transforms/b2405a9e958c328a70ed830ec167ee3b/transformed/play-services-ads-api-25.4.0/AndroidManifest.xml" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

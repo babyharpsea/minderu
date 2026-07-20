@@ -1,0 +1,17 @@
+Index: build.gradle.kts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>plugins {\r\n    id(\"com.android.application\") version \"8.5.2\" apply false\r\n    id(\"org.jetbrains.kotlin.android\") version \"2.0.20\" apply false\r\n    id(\"org.jetbrains.kotlin.plugin.compose\") version \"2.0.20\" apply false\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/build.gradle.kts b/build.gradle.kts
+--- a/build.gradle.kts	(revision 56b98e55b28d350e3836a4de60154ecd8287fb61)
++++ b/build.gradle.kts	(date 1784484534090)
+@@ -1,5 +1,5 @@
+ plugins {
+-    id("com.android.application") version "8.5.2" apply false
++    id("com.android.application") version "8.13.2" apply false
+     id("org.jetbrains.kotlin.android") version "2.0.20" apply false
+     id("org.jetbrains.kotlin.plugin.compose") version "2.0.20" apply false
+ }

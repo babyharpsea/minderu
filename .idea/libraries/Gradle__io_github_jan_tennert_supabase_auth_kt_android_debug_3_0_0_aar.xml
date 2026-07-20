@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="Gradle: io.github.jan-tennert.supabase:auth-kt-android-debug:3.0.0@aar" external-system-id="GRADLE">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/9.4.1/transforms/24c098ecf48635e9c6b96160c4ddef99/transformed/auth-kt-debug/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/9.4.1/transforms/24c098ecf48635e9c6b96160c4ddef99/transformed/auth-kt-debug/AndroidManifest.xml" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.github.jan-tennert.supabase/auth-kt-android-debug/3.0.0/b6ce1a68523d496bdd3f3640c1647bb4a1c74679/auth-kt-android-debug-3.0.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

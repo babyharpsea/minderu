@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Token
 import androidx.compose.material3.Icon
@@ -38,7 +39,7 @@ import com.google.android.gms.ads.AdLoader
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdView
-import com.minderu.data.Task
+import com.minderu.data.TaskUiModel
 import com.minderu.data.rewardColor
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -82,7 +83,6 @@ fun NativeAdItem(adId: String, modifier: Modifier = Modifier) {
                 factory = { ctx ->
                     NativeAdView(ctx).apply {
                         // In a real implementation, you'd inflate a XML layout here
-                        // For a quick test, we just show that it's loaded
                     }
                 },
                 update = { view ->
@@ -109,9 +109,10 @@ fun NativeAdItem(adId: String, modifier: Modifier = Modifier) {
 
 @Composable
 fun TaskCard(
-    task: Task,
-    onTaskCompleted: (Task) -> Unit,
-    onTaskDeleted: (Task) -> Unit,
+    task: TaskUiModel,
+    onTaskCompleted: (TaskUiModel) -> Unit,
+    onTaskDeleted: (TaskUiModel) -> Unit,
+    onTaskEdit: (TaskUiModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -148,9 +149,19 @@ fun TaskCard(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = if (task.isCompleted) "Nice work" else task.subtitle,
+                    text = if (task.isCompleted) "Nice work" else task.subhead,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            IconButton(
+                onClick = { onTaskEdit(task) }
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Edit,
+                    contentDescription = "Edit task",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             

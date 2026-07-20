@@ -6,19 +6,23 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Logout
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,80 +30,27 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.minderu.data.RoutineDto
-import com.minderu.data.SupabaseProvider
-import com.minderu.data.Task
-import com.minderu.data.TaskDto
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.minderu.data.TaskUiModel
+import com.minderu.ui.components.AddTaskBottomSheet
 import com.minderu.ui.components.NativeAdItem
 import com.minderu.ui.components.TaskCard
-import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.postgrest.postgrest
-import kotlinx.coroutines.launch
-import java.util.UUID
+import com.minderu.ui.viewmodels.TodayTasksViewModel
 
 @Composable
 fun TodayTasksScreen(
+    viewModel: TodayTasksViewModel,
     contentPadding: PaddingValues,
+    onSignOut: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val scope = rememberCoroutineScope()
-    val tasks = remember { mutableStateListOf<Task>() }
-    var isLoading by remember { mutableStateOf(true) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
+    val tasks by viewModel.tasks.collectAsStateWithLifecycle()
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) {
-        try {
-            isLoading = true
-            SupabaseProvider.ensureAuthenticated()
-            val user = SupabaseProvider.client.auth.currentUserOrNull() ?: throw Exception("Auth failed")
-
-            // 1. Fetch routines
-            val routines = SupabaseProvider.client.postgrest["routines"]
-                .select()
-                .decodeList<RoutineDto>()
-
-            val activeRoutine = if (routines.isEmpty()) {
-                // Seed default routine
-                val newRoutine = RoutineDto(
-                    id = UUID.randomUUID().toString(),
-                    userId = user.id,
-                    title = "Daily Focus",
-                    isActive = true
-                )
-                SupabaseProvider.client.postgrest["routines"].insert(newRoutine)
-
-                // Seed default tasks
-                val defaultTasks = listOf(
-                    TaskDto(UUID.randomUUID().toString(), newRoutine.id, 0, "Put 3 clothes in your closet", "One tiny step", 3),
-                    TaskDto(UUID.randomUUID().toString(), newRoutine.id, 1, "Drink a glass of water", "One tiny step", 2),
-                    TaskDto(UUID.randomUUID().toString(), newRoutine.id, 2, "Clear one surface", "One tiny step", 3)
-                )
-                SupabaseProvider.client.postgrest["tasks"].insert(defaultTasks)
-                newRoutine
-            } else {
-                routines.first { it.isActive }
-            }
-
-            // 2. Fetch tasks for routine
-            val dbTasks = SupabaseProvider.client.postgrest["tasks"]
-                .select {
-                    filter {
-                        eq("routine_id", activeRoutine.id)
-                    }
-                }
-                .decodeList<TaskDto>()
-
-            tasks.clear()
-            tasks.addAll(dbTasks.map { dto ->
-                Task(dto.id, dto.title, dto.subhead, dto.sparksReward, false)
-            })
-
-            isLoading = false
-        } catch (e: Exception) {
-            errorMessage = e.message ?: "Unknown error"
-            isLoading = false
-        }
-    }
+    // Bottom sheet state
+    var showBottomSheet by remember { mutableStateOf(false) }
+    var editingTask by remember { mutableStateOf<TaskUiModel?>(null) }
 
     if (isLoading) {
         Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -110,7 +61,17 @@ fun TodayTasksScreen(
 
     if (errorMessage != null) {
         Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(text = "Error: $errorMessage", color = MaterialTheme.colorScheme.error)
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "Error: $errorMessage",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Spacer(Modifier.height(16.dp))
+                Button(onClick = { viewModel.loadTasks() }) {
+                    Text("Retry")
+                }
+            }
         }
         return
     }
@@ -127,15 +88,31 @@ fun TodayTasksScreen(
     ) {
         item {
             Column {
-                Text(
-                    text = "Minderu",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
+                // Header row with sign-out
+                Box(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Minderu",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.align(Alignment.CenterStart)
+                    )
+                    IconButton(
+                        onClick = onSignOut,
+                        modifier = Modifier.align(Alignment.CenterEnd)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Logout,
+                            contentDescription = "Sign out",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
                 Spacer(Modifier.height(28.dp))
                 Text(
-                    text = "Today’s tasks",
+                    text = "Today's tasks",
                     style = MaterialTheme.typography.displaySmall.copy(
                         fontSize = 40.sp,
                         fontStyle = FontStyle.Italic,
@@ -160,38 +137,52 @@ fun TodayTasksScreen(
         items(tasks, key = { it.id }) { task ->
             TaskCard(
                 task = task,
-                onTaskCompleted = { updatedTask ->
-                    val index = tasks.indexOfFirst { it.id == updatedTask.id }
-                    if (index != -1) {
-                        val newCompletedStatus = !tasks[index].isCompleted
-                        tasks[index] = tasks[index].copy(isCompleted = newCompletedStatus)
-                        
-                        // Persist to Supabase (e.g., updating a profile or a 'task_completions' table)
-                        scope.launch {
-                            try {
-                                // For this example, let's assume we update user's sparks in a 'profiles' table
-                                // and maybe log the completion.
-                                // SupabaseProvider.client.postgrest["profiles"].update(...)
-                            } catch (e: Exception) {
-                                // Handle persistence error
-                            }
-                        }
-                    }
-                },
-                onTaskDeleted = { taskToDelete ->
-                    tasks.removeIf { it.id == taskToDelete.id }
-                    scope.launch {
-                        try {
-                            SupabaseProvider.client.postgrest["tasks"].delete {
-                                filter { eq("id", taskToDelete.id) }
-                            }
-                        } catch (e: Exception) {
-                            // Handle deletion error
-                        }
-                    }
+                onTaskCompleted = { viewModel.toggleComplete(it.id) },
+                onTaskDeleted = { viewModel.deleteTask(it.id) },
+                onTaskEdit = { taskToEdit ->
+                    editingTask = taskToEdit
+                    showBottomSheet = true
                 },
                 modifier = Modifier.animateItem()
             )
         }
+
+        // FAB-equivalent: "Add task" button at bottom of list
+        item {
+            Button(
+                onClick = {
+                    editingTask = null
+                    showBottomSheet = true
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
+            ) {
+                Text("+ Add a micro-task", fontWeight = FontWeight.SemiBold)
+            }
+        }
+    }
+
+    // ── Bottom Sheet (Create / Edit) ──────────────────────────
+
+    if (showBottomSheet) {
+        AddTaskBottomSheet(
+            existingTask = editingTask,
+            onDismissRequest = {
+                showBottomSheet = false
+                editingTask = null
+            },
+            onSubmit = { title, subhead, sparks ->
+                val existing = editingTask
+                if (existing != null) {
+                    viewModel.updateTask(existing.id, title, subhead, sparks)
+                } else {
+                    viewModel.addTask(title, subhead, sparks)
+                }
+                showBottomSheet = false
+                editingTask = null
+            }
+        )
     }
 }

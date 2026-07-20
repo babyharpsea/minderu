@@ -1,0 +1,17 @@
+<component name="libraryTable">
+  <library name="Gradle: androidx.compose.ui:ui-android:1.7.3@aar" external-system-id="GRADLE">
+    <ANNOTATIONS>
+      <root url="jar://$USER_HOME$/.gradle/caches/9.4.1/transforms/f989d8dbe865af747407b902defa96e2/transformed/ui-release/annotations.zip!/" />
+    </ANNOTATIONS>
+    <CLASSES>
+      <root url="file://$USER_HOME$/.gradle/caches/9.4.1/transforms/f989d8dbe865af747407b902defa96e2/transformed/ui-release/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/9.4.1/transforms/f989d8dbe865af747407b902defa96e2/transformed/ui-release/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/9.4.1/transforms/f989d8dbe865af747407b902defa96e2/transformed/ui-release/jars/classes.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/androidx.compose.ui/ui-android/1.7.3/28bcf1977e634610892bc9334bcef44c0d644099/ui-1.7.3-samples-sources.jar!/" />
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/androidx.compose.ui/ui-android/1.7.3/107622106c58703f379152967aa81cc368b4e61d/ui-android-1.7.3-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
