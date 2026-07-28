@@ -3,7 +3,6 @@ package com.minderu.data
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.auth.Auth
-import io.github.jan.supabase.realtime.Realtime
 
 object SupabaseModule {
 
@@ -15,7 +14,6 @@ object SupabaseModule {
         supabaseKey = KEY
     ) {
         install(Postgrest)
-        install(Auth) // SettingsSessionManager persists JWT automatically
-        install(Realtime)
+        install(Auth)
     }
 }

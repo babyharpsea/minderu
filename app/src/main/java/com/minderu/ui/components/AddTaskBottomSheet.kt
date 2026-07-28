@@ -2,10 +2,11 @@ package com.minderu.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -21,13 +22,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.minderu.data.TaskUiModel
-
-private val CoralAccent = Color(0xFFFF5252)
+import com.minderu.ui.theme.accents
 
 /**
  * Unified bottom sheet for creating and editing tasks.
@@ -46,9 +45,11 @@ fun AddTaskBottomSheet(
 ) {
     val isEditMode = existingTask != null
 
-    var taskTitle by remember { mutableStateOf(existingTask?.title ?: "") }
-    var taskSubhead by remember { mutableStateOf(existingTask?.subhead ?: "One tiny step") }
-    var sparksReward by remember { mutableStateOf(existingTask?.sparks?.toString() ?: "2") }
+    // Keyed on existingTask so reopening for a different task resets fields
+    var taskTitle by remember(existingTask) { mutableStateOf(existingTask?.title ?: "") }
+    var taskSubhead by remember(existingTask) { mutableStateOf(existingTask?.subhead ?: "One tiny step") }
+    var sparksReward by remember(existingTask) { mutableStateOf(existingTask?.sparks?.toString() ?: "2") }
+    var titleError by remember { mutableStateOf<String?>(null) }
 
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
@@ -59,7 +60,9 @@ fun AddTaskBottomSheet(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
-                .padding(bottom = 48.dp),
+                .navigationBarsPadding()
+                .imePadding()
+                .padding(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
@@ -70,12 +73,17 @@ fun AddTaskBottomSheet(
 
             OutlinedTextField(
                 value = taskTitle,
-                onValueChange = { taskTitle = it },
+                onValueChange = {
+                    taskTitle = it
+                    titleError = null
+                },
                 label = { Text("What needs doing?") },
                 placeholder = { Text("e.g., Clear one surface") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                singleLine = true
+                singleLine = true,
+                isError = titleError != null,
+                supportingText = titleError?.let { err -> { Text(err) } }
             )
 
             OutlinedTextField(
@@ -88,45 +96,34 @@ fun AddTaskBottomSheet(
                 singleLine = true
             )
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                OutlinedTextField(
-                    value = sparksReward,
-                    onValueChange = { if (it.all { char -> char.isDigit() }) sparksReward = it },
-                    label = { Text("Sparks reward") },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(16.dp),
-                    singleLine = true
+            Button(
+                onClick = {
+                    if (taskTitle.isBlank()) {
+                        titleError = "Give your task a name"
+                        return@Button
+                    }
+                    onSubmit(
+                        taskTitle.trim(),
+                        taskSubhead.trim().ifBlank { "One tiny step" },
+                        2 // Task rewards are automated dynamically on completion (1-5 Sparks)
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.accents.action,
+                    contentColor = MaterialTheme.accents.onAction
                 )
-
-                Button(
-                    onClick = {
-                        if (taskTitle.isNotBlank()) {
-                            onSubmit(
-                                taskTitle.trim(),
-                                taskSubhead.trim().ifBlank { "One tiny step" },
-                                sparksReward.toIntOrNull() ?: 2
-                            )
-                        }
-                    },
-                    modifier = Modifier
-                        .height(56.dp)
-                        .weight(1f),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = CoralAccent,
-                        contentColor = Color.White
-                    )
-                ) {
-                    Text(
-                        text = if (isEditMode) "Save Changes" else "Create Task",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
-                    )
-                }
+            ) {
+                Text(
+                    text = if (isEditMode) "Save Changes" else "Create Task",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
             }
+
             Spacer(Modifier.height(8.dp))
         }
     }

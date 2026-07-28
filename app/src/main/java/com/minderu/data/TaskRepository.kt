@@ -1,21 +1,43 @@
 package com.minderu.data
 
 import io.github.jan.supabase.postgrest.postgrest
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.UUID
 
 class TaskRepository {
 
     private val db = SupabaseModule.client.postgrest
 
+    /**
+     * Serializes read-modify-write on the Sparks balance.
+     *
+     * Without this, two concurrent `toggleComplete` calls can both read the same
+     * balance and the second write silently overwrites the first — losing Sparks.
+     * A server-side RPC would be better, but the plan says "no schema changes".
+     */
+    private val sparksMutex = Mutex()
+
     // ── Routines ──────────────────────────────────────────────
 
-    /** Fetch the first active routine for this user, or null if none exist. */
+    /** Fetch the first active routine for this user, or any existing routine as fallback, or null if none exist. */
     suspend fun fetchActiveRoutine(userId: String): RoutineDto? {
-        return db["routines"]
+        val active = db["routines"]
             .select {
                 filter {
                     eq("user_id", userId)
                     eq("is_active", true)
+                }
+            }
+            .decodeList<RoutineDto>()
+            .firstOrNull()
+
+        if (active != null) return active
+
+        return db["routines"]
+            .select {
+                filter {
+                    eq("user_id", userId)
                 }
             }
             .decodeList<RoutineDto>()
@@ -37,7 +59,11 @@ class TaskRepository {
             TaskDto(UUID.randomUUID().toString(), routine.id, 1, "Drink a glass of water", "One tiny step", 2),
             TaskDto(UUID.randomUUID().toString(), routine.id, 2, "Clear one surface", "One tiny step", 3)
         )
-        db["tasks"].insert(seedTasks)
+        try {
+            db["tasks"].insert(seedTasks)
+        } catch (e: Exception) {
+            android.util.Log.e("TaskRepository", "Seed tasks error: ${e.message}", e)
+        }
 
         return routine
     }
@@ -54,7 +80,7 @@ class TaskRepository {
             .decodeList<TaskDto>()
     }
 
-    /** Insert a new task. */
+    /** Insert a new task with an explicit [positionIndex]. */
     suspend fun insertTask(dto: TaskDto) {
         db["tasks"].insert(dto)
     }
@@ -87,14 +113,70 @@ class TaskRepository {
             .firstOrNull()
     }
 
-    /** Award sparks by adding a delta to the current balance (via RPC or read-modify-write). */
-    suspend fun awardSparks(userId: String, delta: Int) {
-        val profile = fetchProfile(userId) ?: return
-        val newBalance = profile.sparks + delta
-        db["profiles"].update({
-            set("sparks", newBalance)
-        }) {
-            filter { eq("id", userId) }
+    /**
+     * Ensure a `profiles` row exists for [userId].
+     *
+     * Checks if profile exists first to prevent overwriting existing sparks
+     * or triggering upsert RLS failures.
+     */
+    suspend fun ensureProfile(userId: String) {
+        try {
+            val existing = fetchProfile(userId)
+            if (existing == null) {
+                db["profiles"].insert(
+                    ProfileDto(id = userId, sparks = 0, isPremium = false)
+                )
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("TaskRepository", "Ensure profile error: ${e.message}", e)
+        }
+    }
+
+    /**
+     * Adjust the Sparks balance by [delta] (positive to award, negative to deduct).
+     *
+     * Serialized through [sparksMutex] to prevent concurrent read-modify-write
+     * from losing updates. Still best-effort — a failure doesn't crash the caller.
+     *
+     * @throws IllegalStateException if the profile doesn't exist (callers should
+     *         [ensureProfile] during task loading).
+     */
+    suspend fun adjustSparks(userId: String, delta: Int) {
+        sparksMutex.withLock {
+            val profile = fetchProfile(userId)
+                ?: throw IllegalStateException("Profile not found for user $userId")
+            val newBalance = (profile.sparks + delta).coerceAtLeast(0)
+            db["profiles"].update({
+                set("sparks", newBalance)
+            }) {
+                filter { eq("id", userId) }
+            }
+        }
+    }
+
+    /** Update user profile streak data. */
+    suspend fun updateProfileStreak(userId: String, currentStreak: Int, maxStreak: Int, lastActiveDate: String) {
+        try {
+            db["profiles"].update({
+                set("current_streak", currentStreak)
+                set("max_streak", maxStreak)
+                set("last_active_date", lastActiveDate)
+            }) {
+                filter { eq("id", userId) }
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("TaskRepository", "Failed to update profile streak: ${e.message}", e)
+        }
+    }
+
+    /** Log task completion into task_completions table. */
+    suspend fun recordTaskCompletion(userId: String, taskId: String) {
+        try {
+            db["task_completions"].insert(
+                TaskCompletionDto(userId = userId, taskId = taskId)
+            )
+        } catch (e: Exception) {
+            android.util.Log.e("TaskRepository", "Failed to log task completion: ${e.message}", e)
         }
     }
 }

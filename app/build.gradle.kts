@@ -13,13 +13,29 @@ android {
     defaultConfig {
         applicationId = "com.minderu"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
     }
 
     buildFeatures {
         compose = true
+        buildConfig = true
+    }
+
+    buildTypes {
+        debug {
+            isMinifyEnabled = false
+            buildConfigField("String", "AD_UNIT_NATIVE", "\"ca-app-pub-3940256099942544/2247696110\"")
+        }
+        release {
+            isMinifyEnabled = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            buildConfigField("String", "AD_UNIT_NATIVE", "\"ca-app-pub-7003079941696391/7018656297\"")
+        }
     }
 
     compileOptions {
@@ -51,10 +67,9 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.6")
 
-    // Supabase
+    // Supabase (Realtime removed — unused)
     implementation("io.github.jan-tennert.supabase:postgrest-kt:3.0.0")
     implementation("io.github.jan-tennert.supabase:auth-kt:3.0.0")
-    implementation("io.github.jan-tennert.supabase:realtime-kt:3.0.0")
     implementation("io.github.jan-tennert.supabase:compose-auth:3.0.0")
     implementation("io.github.jan-tennert.supabase:compose-auth-ui:3.0.0")
 
@@ -68,6 +83,12 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.16.0"))
     implementation("com.google.firebase:firebase-analytics")
 
+    // Image Loading
+    implementation("io.coil-kt:coil-compose:2.7.0")
+
     // AdMob
     implementation("com.google.android.gms:play-services-ads:25.4.0")
+
+    // SLF4J No-Op Logger (suppress warning in Supabase/Ktor)
+    implementation("org.slf4j:slf4j-nop:2.0.12")
 }

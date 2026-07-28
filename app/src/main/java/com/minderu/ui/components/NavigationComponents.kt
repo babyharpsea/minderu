@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -23,9 +23,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.graphics.Color
 import com.minderu.data.MinderuDestination
+import com.minderu.ui.theme.accents
 
 @Composable
 fun FloatingNavDock(
@@ -64,12 +66,12 @@ fun FloatingNavDock(
                     onClick = onFabClick,
                     modifier = Modifier.size(56.dp),
                     shape = RoundedCornerShape(16.dp),
-                    containerColor = Color(0xFFFF5252), // High-contrast Coral for FAB
-                    contentColor = Color.White
+                    containerColor = MaterialTheme.accents.action,
+                    contentColor = MaterialTheme.accents.onAction
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.Edit,
-                        contentDescription = "Edit tasks"
+                        imageVector = Icons.Outlined.Add,
+                        contentDescription = "Add task"
                     )
                 }
             }
@@ -92,6 +94,7 @@ private fun NavigationDockItem(
                 if (selected) Modifier.background(MaterialTheme.colorScheme.secondaryContainer)
                 else Modifier
             )
+            .semantics { this.selected = selected }
     ) {
         Icon(
             imageVector = destination.icon,
