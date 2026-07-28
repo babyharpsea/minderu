@@ -70,7 +70,7 @@ fun MinderuApp(
     val sessionStatus by authViewModel.sessionStatus.collectAsStateWithLifecycle()
 
     when (sessionStatus) {
-        is SessionStatus.LoadingFromStorage -> {
+        SessionStatus.Initializing -> {
             // Full-screen loading spinner while restoring session
             Box(
                 modifier = modifier.fillMaxSize(),
@@ -97,6 +97,8 @@ fun MinderuApp(
                 modifier = modifier
             )
         }
+
+        is SessionStatus.RefreshFailure -> TODO()
     }
 }
 

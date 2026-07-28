@@ -24,7 +24,7 @@ class AuthViewModel : ViewModel() {
 
     /** Reactive session lifecycle for root navigation decisions. */
     val sessionStatus: StateFlow<SessionStatus> = repo.sessionStatus
-        .stateIn(viewModelScope, SharingStarted.Eagerly, SessionStatus.LoadingFromStorage)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, SessionStatus.Initializing)
 
     /** Auth dialog state (loading spinner, error text). */
     private val _uiState = MutableStateFlow<AuthUiState>(AuthUiState.Idle)

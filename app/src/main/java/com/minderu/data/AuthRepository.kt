@@ -9,7 +9,7 @@ class AuthRepository {
 
     private val auth = SupabaseModule.client.auth
 
-    /** Observe session lifecycle (LoadingFromStorage → Authenticated / NotAuthenticated). */
+    /** Observe session lifecycle (Initializing → Authenticated / NotAuthenticated). */
     val sessionStatus: Flow<SessionStatus> = auth.sessionStatus
 
     /** Block until the SDK finishes reading the persisted session from disk. */

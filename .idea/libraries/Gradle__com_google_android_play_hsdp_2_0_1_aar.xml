@@ -1,9 +1,9 @@
 <component name="libraryTable">
   <library name="Gradle: com.google.android.play:hsdp:2.0.1@aar" external-system-id="GRADLE">
     <CLASSES>
-      <root url="jar://$USER_HOME$/.gradle/caches/9.4.1/transforms/f65ec202430c192f1dffdc77c0bbdb85/transformed/hsdp-2.0.1/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.gradle/caches/9.4.1/transforms/f65ec202430c192f1dffdc77c0bbdb85/transformed/hsdp-2.0.1/res" />
-      <root url="file://$USER_HOME$/.gradle/caches/9.4.1/transforms/f65ec202430c192f1dffdc77c0bbdb85/transformed/hsdp-2.0.1/AndroidManifest.xml" />
+      <root url="file://$USER_HOME$/.gradle/caches/9.6.0/transforms/541e6836e8ae2395c625a984798346e7/transformed/hsdp-2.0.1/AndroidManifest.xml" />
+      <root url="file://$USER_HOME$/.gradle/caches/9.6.0/transforms/541e6836e8ae2395c625a984798346e7/transformed/hsdp-2.0.1/res" />
+      <root url="jar://$USER_HOME$/.gradle/caches/9.6.0/transforms/541e6836e8ae2395c625a984798346e7/transformed/hsdp-2.0.1/jars/classes.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
